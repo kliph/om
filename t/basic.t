@@ -1,5 +1,5 @@
 use Test;
-use lib 'lib'
+use lib 'lib';
 use Main;
 
 plan 1;
