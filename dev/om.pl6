@@ -2,7 +2,6 @@
 # Usage:
 #   om.pl6 [--with-agenda] [--with-notes] [--all] <date> '[<user-names> ...]'
 
-
 use JSON::Tiny;
 
 sub config-to-copy(%c, $with-notes) {
@@ -20,26 +19,24 @@ sub config-to-subject(%c, $with-notes) {
 }
 
 
-sub debug-stuff($email, $copy, $name, $date, $subject){
-  send-email($email, $copy, $name, $date, $subject)
-}
+sub send-email-when-file-exists(%h (Str :$email-address, Str :$copy, Str :$name, Str :$date, Str :$subject, Str :$from)){
+  my $file = "$name/$date.org".IO;
+  when $file ~~ :e {
+    my $text = $file.slurp;
 
-sub send-email($email-address, $copy, $name, $date, $subject){
-  my $text = "$name/$date.org".&slurp;
-
-  my $email = qq:to/END/;
+    my $email = qq:to/END/;
 To: $email-address
-From: me@example.com
+From: $from
 Subject: $subject
 $copy
 
 $text
 END
 
-  my $shell-cmd = qq[printf "$email" | msmtp --account=default --from=me@example.com $email-address];
-  say $shell-cmd;
-  shell $shell-cmd;
-  # printf "To: me@example.com\nFrom: me@example.com\nSubject: ayy lol\n\nHello there." | msmtp --account=default --from=me@example.com me@example.com
+    my $shell-cmd = qq[printf "$email" | msmtp --account=default --from=$from $email-address];
+    say $shell-cmd;
+    shell $shell-cmd;
+  };
 
 }
 
@@ -48,15 +45,34 @@ sub MAIN($date, Bool :$with-agenda = True, Bool :$with-notes = False, Bool :$all
   my %names-to-emails = %config{'user-names'};
   my $copy = config-to-copy(%config, $with-notes);
   my $subject = config-to-subject(%config, $with-notes);
+  my $from = %config{'from'};
+  my %params = %(
+    :$copy,
+    :$subject,
+    :$date,
+    :$from
+  );
+
   if @user-names {
     for @user-names -> $name {
       my $email = %names-to-emails{$name};
-      send-email($email, $copy, $name, $date, $subject);
+      send-email-when-file-exists(
+        %(
+          %params,
+          :email-address($email),
+          :$name
+        )
+      );
     }
-  }
-  elsif $all {
+  } elsif $all {
     for %names-to-emails.kv -> $name, $email {
-      send-email($email, $copy, $name, $date, $subject);
+      send-email-when-file-exists(
+        %(
+          %params,
+          :email-address($email),
+          :$name
+        )
+      );
     }
   }
 }
