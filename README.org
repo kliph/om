@@ -1,1 +1,10 @@
 * OM: a one-on-one mailer
+** Setup
+*** Install homebrew dependencies
+#+BEGIN_SRC shell
+  brew install rakudo-star msmtp gpg
+#+END_SRC
+*** Setup msmtp
+https://wiki.archlinux.org/index.php/msmtp#Basic_setup
+*** Setup gmail
+https://support.google.com/accounts/answer/6010255?hl=en
