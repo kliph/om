@@ -21,7 +21,7 @@ sub config-to-subject(%c, $with-notes) {
 
 sub send-email-when-file-exists(%h (Str :$email-address, Str :$copy, Str :$name, Str :$date, Str :$subject, Str :$from)){
   my $file = "$name/$date.org".IO;
-  when $file ~~ :e {
+  when $file.e {
     my $text = $file.slurp;
 
     my $email = qq:to/END/;
